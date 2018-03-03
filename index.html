@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+  <head>
+     <meta charset="UTF-8" />
+    <title>NYT Explorer</title>
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"> </script>
+    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<style type="text/css">
+      
+	  @media only screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:portrait) {
+	.page {
+        width: 90%;
+        margin: 0 auto;
+        }
+      
+	.head { 
+        font-family: 'Alex Brush';
+        font-size: 22px;
+        background-color: orange;
+        
+		}
+      
+    .monthYear p {
+        display: inline-block
+		}
+      
+	.articleDetails {
+        display: flex;
+        margin-top: 30px;
+		}
+      
+	.article {
+        display: flex;
+        float: left;
+        width: 100%;
+        display: -webkit-flex; 
+        -webkit-flex-wrap: wrap; 
+        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: auto auto;
+        grid-template-rows: auto auto;
+        grid-gap: 10px;
+        padding: 10px;
+		}
+		
+    .details{
+        float: left;
+        width: 20%;
+        display: inline-block;
+		}
+	.oneArticle{
+        border: solid 2px black;
+        width: 80%;
+		}
+     
+	button {
+        background-color: orange;
+        cursor: pointer;
+        font-size: 16px;
+        border-radius: 10%;
+		}
+    
+	button:hover {
+        background-color: lightgrey;
+		} 
+		}	 
+		 
+		
+@media screen and @media only screen and (min-device-width: 360px) and (max-device-width: 640px){
+     
+   	.oneArticle{
+        display: flex;
+        align-content: flex-start;
+        align-items: stretch;
+        flex: 1;
+        flex-direction: column;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+
+		}
+		
+	.head { 
+        font-family: 'Alex Brush';
+        font-size: 22px;
+        background-color: orange;
+        
+		}	
+
+   .article {
+        display: flex;
+        float: left;
+        width: 100%;
+        
+        align-content: flex-start;
+        align-items: stretch;
+        flex: 1;
+        flex-direction: column;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+		} }
+
+ 
+@media screen and (min-width: 1224px) {	
+
+	.page {
+        width: 90%;
+        margin: 0 auto;
+        }
+      
+	.head { 
+        font-family: 'Alex Brush';
+        font-size: 22px;
+        background-color: orange;
+        
+      }
+      
+    .monthYear p {
+        display: inline-block
+      }
+    .articleDetails {
+        display: flex;
+        margin-top: 30px;
+      }
+    .article {
+        display: flex;
+        float: left;
+        width: 100%;
+        display: -webkit-flex; 
+        -webkit-flex-wrap: wrap; 
+        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: auto auto auto auto ;
+        grid-template-rows: auto auto auto auto;
+        grid-gap: 10px;
+        padding: 10px;
+		}
+		
+    .details{
+        float: left;
+        width: 20%;
+        display: inline-block;
+		}
+    .oneArticle{
+        border: solid 2px black;
+        width: 80%;
+		}
+     
+    button {
+        background-color: lightblue;
+        cursor: pointer;
+        font-size: 16px;
+        border-radius: 10%;
+        
+		}
+    button:hover {
+        background-color: lightgrey;
+		} 
+		}
+	  
+	  
+    </style>
+  </head>
+ 
+
+
+
+  <body>
+    <div class="page">
+      <div class="head">
+        <div class="heading">
+          <h1>New York Times Article Archive Explorer</h1>
+        </div>
+        <div class="monthYear">
+          <p>Month:</p>
+          <input type="number" id="month" value="2" min="1" max="12" required>
+          <p>Year:</p>
+          <input type="number" id="year" value="2018" min="1853" max="2018" required>
+          <button onclick="find()">Find</button>
+        </div>
+      </div>
+      <div id="root">
+      </div>
+    </div>
+
+    <script type="text/babel">
+
+     class App extends React.Component { 
+
+        constructor(props){
+          super(props)
+          this.state = {
+            data: [],
+            selectedArticle: []
+          };
+          this.setData = this.setData.bind(this);
+          this.handleArticleClick = this.handleArticleClick.bind(this);
+        }
+
+        handleArticleClick(item){
+          this.setState({selectedArticle: item})   
+        }
+
+        setData(responseData){
+            const doc = responseData.response.docs.slice(0,20);
+            this.setState({data: doc});
+        }
+        
+    componentDidMount(){
+            var url = "https://api.nytimes.com/svc/archive/v1/" + $('#year').val() + '/' + $('#month').val() + ".json";
+            url += '?' + $.param({
+            'api-key': "37d30a1fdcc146f486d3bdc7cc9006cc"
+            });
+            
+            $.ajax({
+              url: url,
+              method: 'GET',
+            }).done(
+              this.setData).fail(
+              function(err) {
+              throw err;
+            });
+        }
+
+    render(){ 
+          if(this.state.data.length ==0){         
+            return  <p>Wait a moment ...</p>;
+          } 
+
+          else{
+            return (
+              <div className="articleDetails">
+                <div className="article"> {
+                  this.state.data.map( 
+                    (article) => 
+                      <Article key={article.web_url} 
+                               url={article.web_url} 
+                               clickhandler={this.handleArticleClick} 
+                               item={article}/> 
+                  )
+                }
+                </div>
+                <div className="details">
+                  <UserDetails user={this.state.selectedArticle}/>
+                </div>
+              </div>
+            )
+          } console.log(article)
+        }
+      }  
+
+      const UserDetails=(props)=> {
+        const user=props.user;
+        let headline = user.headline;
+        let byline = user.byline;
+
+        let pubDate = user.pub_date;
+        console.log(pubDate)
+       
+        let getAuthor =  "";
+        let getTitle = "";
+
+       
+        for(let i in byline){
+          getAuthor = byline.original
+        }
+        
+        
+        for(let i in headline){
+          getTitle = headline.main
+        } 
+              
+          return(
+            <div className="">
+                <h4>{getTitle}</h4>
+                <p>{getAuthor}</p>
+                <p>{user.snippet}</p>
+                <p>{}</p>
+                <a href={user.web_url} target="_blank">{user.web_url}</a>
+            </div>
+        );
+      }
+
+    class Article extends React.Component {
+
+        constructor(props){
+          super(props)
+          this.state = {data: {}};
+          this.setData = this.setData.bind(this)
+      }
+
+        setData(responseData){
+          this.setState({data: responseData});
+        }   
+
+    componentDidMount(){
+          $.ajax({
+            url: 'http://api.linkpreview.net/?key=5a9973bba16f1ba4d8e328d2774df0803ee31f13de4ed&q=' + this.props.url,
+		/*	url: 'http://api.linkpreview.net/?key=123456&q=https://www.google.com', */
+            success: this.setData
+          })
+        }
+      
+    render(){
+          const data = this.props.item;
+          const clickhandler = this.props.clickhandler;  
+   
+          return (
+              <div className="oneArticle" onClick={() => clickhandler(data)}>
+                <img src={this.state.data.image} alt={this.state.data.image} width="100"></img>
+                <h3>{this.state.data.title}</h3>
+                <p>{this.state.data.description}</p>
+              </div>
+          );
+        }
+      }
+
+    $("[type='number']").keypress(function (evt) {
+      evt.preventDefault();
+    });
+
+      function find(){
+        ReactDOM.unmountComponentAtNode(root);
+        ReactDOM.render(<App/>, document.getElementById('root')) 
+      }    
+      
+    </script>
+  </body>
+</html>
